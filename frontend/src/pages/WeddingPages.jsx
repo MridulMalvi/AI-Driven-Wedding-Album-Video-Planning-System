@@ -297,7 +297,6 @@ export function PlanPage({ tab }) {
     );
 
   const tabs = [
-    ['overview', 'Overview'],
     ['video-plan', 'Function Videos'],
     ['highlight', 'Highlight Video'],
     ['album', 'Album Design'],
@@ -320,11 +319,10 @@ export function PlanPage({ tab }) {
           <button
             key={slug}
             onClick={() => nav(`${base}/${slug === 'overview' ? 'video-plan' : slug}`)}
-            className={`whitespace-nowrap px-4 py-3 text-sm font-bold ${
-              tab === slug || (tab === 'video-plan' && slug === 'overview')
+            className={`whitespace-nowrap px-4 py-3 text-sm font-bold ${tab === slug || (tab === 'video-plan' && slug === 'overview')
                 ? 'border-b-2 border-wine text-wine'
                 : 'text-stone-400'
-            }`}
+              }`}
           >
             {label}
           </button>
