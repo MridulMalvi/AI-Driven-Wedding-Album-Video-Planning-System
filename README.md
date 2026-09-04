@@ -1,127 +1,100 @@
 # WeddingAI — AI-Driven Wedding Album & Video Planning System
 
-**WeddingAI** is a modern, production-ready MERN application designed to transform wedding briefs and multi-day ceremony schedules into actionable, cinematic video plans, highlight-film narrative structures, and heirloom album design concepts.
-
-Powered by an AI engine (via OpenRouter with fallback to offline mock mode) and MongoDB Atlas, it provides role-specific workspaces for **Clients** and **Administrators**.
+WeddingAI is a production-ready MERN application that turns wedding briefs into cinematic video shot lists, highlight-film timelines, and heirloom album design concepts using AI (OpenRouter / GPT-4o-mini).
 
 ---
 
-## 🌟 Key Features
+## 🚀 Deployment Guide
 
-### 💍 Client Workspace
-- **Multi-Step Wedding Intake Wizard**: Step-by-step onboarding capturing couple names, venue, city, budget, guest count, aesthetic style, color palette, and multi-day ceremonies (Mehendi, Sangeet, Haldi, Ceremony, Reception).
-- **AI-Powered Plan Generation**: Translates celebration briefs into:
-  - **Function Video Plans**: Shot lists, lens & movement recommendations, music cues, color grading palettes, and editing directions for each ceremony.
-  - **Cinematic Highlight Film**: Total runtime, narrative arc, beat-by-beat timeline, emotional peaks, and score suggestions.
-  - **Heirloom Album Design**: Cover design suggestions, color harmonies, typography pairings, and multi-page layout spreads.
-- **Interactive Production Boards**: View, review, and trigger re-generation of video plans and album designs.
+### Part 1: Deploy Backend on Render
 
-### 🏛️ Admin Command Center
-- **Studio Dashboard**: Real-time stats on total weddings, active projects, AI plans generated, pending reviews, and completed celebrations.
-- **Workflow & Lifecycle Management**: Progress wedding milestones across statuses:
-  `planning` ➔ `ai_generated` ➔ `under_review` ➔ `approved` ➔ `in_production` ➔ `completed`
-- **Global Overview**: Inspect client briefs, schedules, and generated AI plans across all weddings.
+1. **Push your code to GitHub** (if not already done).
+2. Go to **[Render.com](https://dashboard.render.com/)** and log in.
+3. Click **New +** ➔ **Web Service**.
+4. Connect your GitHub repository: `AI-Driven-Wedding-Album-Video-Planning-System`.
+5. Configure the Web Service settings:
+   - **Name**: `weddingai-api` (or your preferred name)
+   - **Root Directory**: `backend`
+   - **Environment**: `Node`
+   - **Region**: Any close region (e.g., `Oregon (US West)` or `Singapore`)
+   - **Branch**: `main`
+   - **Build Command**: `npm install`
+   - **Start Command**: `node server.js`
+   - **Plan**: `Free`
+6. Scroll down to **Environment Variables** and add the following:
 
----
+   | Key | Value / Example | Notes |
+   |---|---|---|
+   | `NODE_ENV` | `production` | Enables production mode |
+   | `PORT` | `5000` | (Render sets this automatically) |
+   | `MONGODB_URI` | `mongodb+srv://...` | Your MongoDB Atlas connection string |
+   | `JWT_SECRET` | `generate_a_long_random_string` | Random 32+ character string |
+   | `AI_PROVIDER` | `openrouter` | Set to `mock` if running without LLM key |
+   | `OPENROUTER_API_KEY` | `sk-or-v1-...` | Your OpenRouter API key |
+   | `OPENROUTER_MODEL` | `openai/gpt-4o-mini` | Recommended fast model |
+   | `FRONTEND_URL` | `https://your-frontend-app.vercel.app` | Your Vercel frontend URL (can update after deploying frontend) |
 
-## 🏗️ Architecture
+7. Click **Create Web Service**.
+8. Once deployed, copy your Render backend URL (e.g. `https://weddingai-api.onrender.com`).
 
-```mermaid
-flowchart LR
-  subgraph Client ["Frontend (React + Vite + TailwindCSS)"]
-    UI[Interactive UI / Dashboards]
-    AuthCtx[JWT Auth & Role State]
-    APIClient[Axios API Client]
-  end
-
-  subgraph Server ["Backend (Node.js + Express)"]
-    Router[REST API Routes]
-    AuthMid[JWT Auth & RBAC Middleware]
-    Controllers[Wedding / AI / Admin Controllers]
-    AIService[AI Engine Service]
-  end
-
-  subgraph Data ["Storage & AI Services"]
-    DB[(MongoDB Atlas)]
-    OpenRouter[OpenRouter API / GPT-4o-mini]
-    MockAI[Offline Mock Provider]
-  end
-
-  UI --> AuthCtx
-  AuthCtx --> APIClient
-  APIClient -->|Bearer JWT| Router
-  Router --> AuthMid
-  AuthMid --> Controllers
-  Controllers --> DB
-  Controllers --> AIService
-  AIService -->|AI_PROVIDER=openrouter| OpenRouter
-  AIService -->|AI_PROVIDER=mock| MockAI
-```
+> **Tip:** You can verify your backend is running by opening `https://your-backend.onrender.com/health` in your browser.
 
 ---
 
-## ⚙️ Environment Configuration
+### Part 2: Deploy Frontend on Vercel
 
-Create a `.env` file in the `backend/` directory (or use `backend/.env.example` as a template):
+1. Go to **[Vercel.com](https://vercel.com/)** and log in.
+2. Click **Add New...** ➔ **Project**.
+3. Import your GitHub repository: `AI-Driven-Wedding-Album-Video-Planning-System`.
+4. In the **Configure Project** screen:
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: Click **Edit** and select `frontend` (Important!)
+   - **Build Command**: `vite build` (or leave default)
+   - **Output Directory**: `dist` (default)
+5. Expand **Environment Variables** and add:
 
-```env
-PORT=5000
-MONGODB_URI=mongodb://username:password@host1:27017,host2:27017/weddingai?ssl=true&replicaSet=atlas-xxx&authSource=admin&retryWrites=true&w=majority
-JWT_SECRET=your_jwt_secret_key_here
-AI_PROVIDER=openrouter
-OPENROUTER_API_KEY=sk-or-v1-your-openrouter-key-here
-OPENROUTER_MODEL=openai/gpt-4o-mini
-FRONTEND_URL=http://localhost:5173
-```
+   | Key | Value |
+   |---|---|
+   | `VITE_API_URL` | `https://your-backend-service.onrender.com/api` |
 
-> **Note on AI Providers:**
-> - `AI_PROVIDER=openrouter`: Uses real-time LLM inference via [OpenRouter](https://openrouter.ai/) (e.g. `openai/gpt-4o-mini`).
-> - `AI_PROVIDER=mock`: Works offline without an API key, providing instant demo generation.
+6. Click **Deploy**.
+7. Once deployed, copy your Vercel URL (e.g. `https://weddingai-web.vercel.app`).
 
 ---
 
-## 🚀 Quick Start
+### Part 3: Final Step — Link CORS on Render
+
+1. Return to **Render Dashboard** ➔ Your `weddingai-api` service ➔ **Environment**.
+2. Update `FRONTEND_URL` with your actual Vercel URL:
+   ```text
+   FRONTEND_URL=https://weddingai-web.vercel.app
+   ```
+3. Save changes. Render will automatically re-deploy with the updated CORS configuration.
+
+---
+
+## 🛠️ Local Development
 
 ### 1. Prerequisites
-- **Node.js** (v18 or higher)
-- **MongoDB** (local instance or MongoDB Atlas cluster)
+- Node.js (v18+)
+- MongoDB Atlas account or local MongoDB instance
 
-### 2. Install Dependencies
-
+### 2. Setup Backend
 ```bash
-# Install backend dependencies
 cd backend
+cp .env.example .env
+# Fill in MONGODB_URI, JWT_SECRET, and OPENROUTER_API_KEY
 npm install
-
-# Install frontend dependencies
-cd ../frontend
-npm install
+npm run seed     # Seeds demo accounts and sample palace wedding
+npm run dev      # Starts API on http://localhost:5000
 ```
 
-### 3. Seed Demo Data
-
-Run the database seed script to populate demo accounts and a sample royal palace wedding with AI plans:
-
+### 3. Setup Frontend
 ```bash
-cd backend
-npm run seed
-```
-
-### 4. Run the Application
-
-Start both the backend and frontend development servers:
-
-```bash
-# Terminal 1 - Backend (starts on http://localhost:5000)
-cd backend
-npm run dev
-
-# Terminal 2 - Frontend (starts on http://localhost:5173)
 cd frontend
-npm run dev
+npm install
+npm run dev      # Starts Vite dev server on http://localhost:5173
 ```
-
-Visit **[http://localhost:5173](http://localhost:5173)** in your browser.
 
 ---
 
@@ -131,77 +104,15 @@ All pre-seeded demo accounts use password: **`WeddingAI123!`**
 
 | Role | Email | Description |
 |---|---|---|
-| **Client** | `client@weddingai.com` | Create celebrations, schedule ceremonies, generate & view AI production boards |
-| **Admin** | `admin@weddingai.com` | Studio command center, monitor all weddings, approve & update workflow statuses |
+| **Client** | `client@weddingai.com` | Create celebrations, manage ceremonies, generate & view AI plans |
+| **Admin** | `admin@weddingai.com` | Studio command center, monitor all client weddings, approve & update statuses |
 
 ---
 
 ## 📡 API Overview
 
-### Authentication
-- `POST /api/auth/register` — Create a new client account
-- `POST /api/auth/login` — Sign in and receive JWT token
-- `GET /api/auth/me` — Get current authenticated user profile
-
-### Weddings & Functions
-- `GET /api/weddings` — List weddings accessible to current user
-- `POST /api/weddings` — Create a new wedding brief
-- `GET /api/weddings/:id` — Get wedding details and functions
-- `PUT /api/weddings/:id` — Update wedding details
-- `DELETE /api/weddings/:id` — Delete a wedding
-- `POST /api/weddings/:id/functions` — Add celebration function / ceremony
-- `PUT /api/weddings/:id/functions/:functionId` — Update function details
-- `DELETE /api/weddings/:id/functions/:functionId` — Remove function
-
-### AI Generation & Production Boards
-- `POST /api/ai/generate-plan/:weddingId` — Trigger AI plan generation
-- `GET /api/ai/status/:weddingId` — Poll status of background AI plan generation
-- `GET /api/weddings/:id/video-plans` — Retrieve function video shot lists
-- `GET /api/weddings/:id/highlight` — Retrieve cinematic highlight film plan
-- `GET /api/weddings/:id/album-design` — Retrieve heirloom album layout concept
-- `POST /api/ai/regenerate-video/:weddingId` — Regenerate video plans
-- `POST /api/ai/regenerate-album/:weddingId` — Regenerate album layout
-
-### Admin Management
-- `GET /api/admin/dashboard` — Studio overview stats and recent weddings
-- `GET /api/admin/weddings` — Filtered list of all studio weddings
-- `PUT /api/admin/weddings/:id/status` — Update production workflow status
-
----
-
-## 📁 Project Structure
-
-```text
-├── backend/
-│   ├── config/             # Database connection setup
-│   ├── controllers/        # Express request handlers (auth, weddings, ai, admin)
-│   ├── middleware/         # Auth, validation, error handler, rate limiters
-│   ├── models/             # Mongoose schemas (User, Wedding, Function, VideoPlan, etc.)
-│   ├── routes/             # Express API route declarations
-│   ├── services/           # AI service layer (OpenRouter integration & mock generator)
-│   ├── utils/              # Seed scripts, helpers, custom error classes
-│   └── server.js           # Server entrypoint
-├── frontend/
-│   ├── src/
-│   │   ├── components/     # UI kit, modals, status tags, protected routes
-│   │   ├── context/        # Auth & Toast notification providers
-│   │   ├── layouts/        # Responsive AppLayout with mobile drawer & sidebar
-│   │   ├── pages/          # Client Dashboard, Admin Dashboard, Wedding Wizard, Detail, AI Plans
-│   │   ├── services/       # Axios API client with interceptors
-│   │   ├── App.jsx         # Routing & global Error Boundary
-│   │   └── main.jsx        # App mounting
-│   ├── index.html          # HTML entry
-│   ├── vite.config.js      # Vite build configuration
-│   └── tailwind.config.js  # Tailwind design system configuration
-└── README.md
-```
-
----
-
-## 🛡️ Security & Scalability
-
-- **Security Headers**: Configured with `helmet` and custom CORS policies.
-- **Rate Limiting**: Protects authentication and AI generation endpoints from abuse.
-- **Input Sanitization**: Validates and normalizes request payloads to prevent NoSQL injection.
-- **Role-Based Access Control (RBAC)**: Validates JWT tokens and enforces permissions across Client and Admin routes.
-- **Asynchronous AI Processing**: Uses non-blocking generation with polling endpoints for high reliability during heavy LLM generation.
+- **Health Checks**: `GET /`, `GET /health`, `GET /api/health`
+- **Authentication**: `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`
+- **Weddings & Ceremonies**: `GET /api/weddings`, `POST /api/weddings`, `GET /api/weddings/:id`, `PUT /api/weddings/:id`, `DELETE /api/weddings/:id`, `POST /api/weddings/:id/functions`
+- **AI Generation**: `POST /api/ai/generate-plan/:weddingId`, `GET /api/ai/status/:weddingId`, `GET /api/weddings/:id/video-plans`, `GET /api/weddings/:id/highlight`, `GET /api/weddings/:id/album-design`
+- **Admin Command**: `GET /api/admin/dashboard`, `GET /api/admin/weddings`, `PUT /api/admin/weddings/:id/status`

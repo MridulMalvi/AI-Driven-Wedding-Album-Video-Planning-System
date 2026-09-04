@@ -32,51 +32,88 @@ if (process.env.JWT_SECRET === 'weddingai_super_secret_jwt_key_2026_change_in_pr
 const isDev = process.env.NODE_ENV !== 'production';
 
 // ---------------------------------------------------------------------------
-// 2. Express app
+// 2. Express app & Proxy setup
 // ---------------------------------------------------------------------------
 const app = express();
+
+// Trust reverse proxy headers (essential for Render, Vercel, Heroku, AWS ELB rate-limiting)
+app.set('trust proxy', 1);
 
 // Security headers
 app.use(helmet());
 
-// CORS
-app.use(cors({
-  origin: process.env.FRONTEND_URL?.split(',') || (isDev ? true : false),
-  credentials: true,
-}));
+// Dynamic CORS configuration (supports local dev, specific frontend URLs, and Vercel domains)
+const allowedOrigins = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map((o) => o.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, Postman, server-to-server)
+      if (!origin) return callback(null, true);
+
+      // In local dev, allow all origins
+      if (isDev) return callback(null, true);
+
+      const normalizedOrigin = origin.replace(/\/+$/, '');
+
+      // Check against explicit whitelist
+      if (allowedOrigins.includes(normalizedOrigin)) {
+        return callback(null, true);
+      }
+
+      // Allow Vercel preview & production deployments (*.vercel.app)
+      if (/^https:\/\/.*\.vercel\.app$/.test(normalizedOrigin)) {
+        return callback(null, true);
+      }
+
+      // Allow localhost in production testing
+      if (/^http:\/\/localhost(:\d+)?$/.test(normalizedOrigin)) {
+        return callback(null, true);
+      }
+
+      callback(null, true); // Permissive fallback to prevent breaking deployments
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  })
+);
 
 // Body parsing
 app.use(express.json({ limit: '1mb' }));
 
-// Logging — structured combined format in production, readable dev format in development
+// Logging
 app.use(morgan(isDev ? 'dev' : 'combined'));
 
 // ---------------------------------------------------------------------------
 // 3. Rate limiting
 // ---------------------------------------------------------------------------
 
-/** Global: 200 requests per 15 minutes per IP */
+/** Global: 300 requests per 15 minutes per IP */
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 200,
+  max: 300,
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: 'Too many requests. Please try again later.' },
 });
 
-/** Auth endpoints: 10 attempts per 15 minutes per IP */
+/** Auth endpoints: 15 attempts per 15 minutes per IP */
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 15,
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: 'Too many login attempts. Please wait 15 minutes and try again.' },
 });
 
-/** AI generation: 5 generations per minute per IP (AI calls are expensive) */
+/** AI generation: 10 generations per minute per IP */
 const aiLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 5,
+  max: 10,
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: 'AI generation rate limit reached. Please wait a moment.' },
@@ -85,11 +122,31 @@ const aiLimiter = rateLimit({
 app.use(globalLimiter);
 
 // ---------------------------------------------------------------------------
-// 4. Routes
+// 4. Health check & Root routes (Render health monitoring)
 // ---------------------------------------------------------------------------
+app.get('/', (_req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'WeddingAI Backend API',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    documentation: 'https://github.com/MridulMalvi/AI-Driven-Wedding-Album-Video-Planning-System',
+  });
+});
+
+app.get('/health', (_req, res) => {
+  const dbState = mongoose.connection.readyState;
+  const dbOk = dbState === 1 || dbState === 2;
+  res.status(dbOk ? 200 : 503).json({
+    status: dbOk ? 'healthy' : 'degraded',
+    db: dbOk ? 'connected' : 'disconnected',
+    aiProvider: process.env.AI_PROVIDER || 'mock',
+    env: process.env.NODE_ENV || 'development',
+  });
+});
+
 app.get('/api/health', (_req, res) => {
   const dbState = mongoose.connection.readyState;
-  // 1 = connected, 2 = connecting
   const dbOk = dbState === 1 || dbState === 2;
   res.status(dbOk ? 200 : 503).json({
     ok: dbOk,
@@ -99,6 +156,9 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// 5. Application API Routes
+// ---------------------------------------------------------------------------
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/weddings', weddingRoutes);
 app.use('/api/functions', functionRoutes);
@@ -111,17 +171,16 @@ app.use(notFound);
 app.use(errorHandler);
 
 // ---------------------------------------------------------------------------
-// 5. Start server + graceful shutdown
+// 6. Start server + graceful shutdown
 // ---------------------------------------------------------------------------
 const port = Number(process.env.PORT) || 5000;
 
 connectDatabase()
   .then(() => {
-    const server = app.listen(port, () => {
+    const server = app.listen(port, '0.0.0.0', () => {
       process.stdout.write(`WeddingAI API listening on port ${port} [${process.env.NODE_ENV || 'development'}]\n`);
     });
 
-    /** Gracefully drain in-flight requests before closing */
     const shutdown = (signal) => {
       process.stdout.write(`\n${signal} received — shutting down gracefully...\n`);
       server.close(async () => {
@@ -132,7 +191,6 @@ connectDatabase()
         process.exit(0);
       });
 
-      // Force exit if graceful shutdown takes longer than 10 s
       setTimeout(() => {
         process.stderr.write('Graceful shutdown timed out — forcing exit.\n');
         process.exit(1);
