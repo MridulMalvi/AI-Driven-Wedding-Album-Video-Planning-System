@@ -1,0 +1,1 @@
+import { Router } from 'express'; import { protect, authorize } from '../middleware/auth.js'; import * as c from '../controllers/editorController.js'; const router = Router(); router.use(protect, authorize('editor')); router.get('/dashboard', c.dashboard); router.get('/weddings', c.weddings); router.put('/weddings/:id/status', c.updateStatus); export default router;

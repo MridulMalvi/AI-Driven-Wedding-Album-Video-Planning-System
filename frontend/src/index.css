@@ -1,0 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base { body { @apply bg-[#fcfaf9] text-ink font-sans antialiased; } button, input, textarea, select { @apply focus:outline-none focus:ring-2 focus:ring-wine/25; } }
+@layer components { .card { @apply rounded-3xl border border-white/80 bg-white shadow-soft; } .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-50; } .btn-primary { @apply btn bg-wine text-white hover:bg-[#4e2034]; } .btn-secondary { @apply btn bg-blush text-wine hover:bg-[#f2dfd8]; } .input { @apply w-full rounded-xl border border-[#eadfda] bg-white px-4 py-3 text-sm placeholder:text-stone-400; } .label { @apply mb-2 block text-sm font-bold text-stone-700; } .eyebrow { @apply text-xs font-bold uppercase tracking-[.18em] text-gold; } .status { @apply rounded-full px-3 py-1 text-xs font-bold; } }

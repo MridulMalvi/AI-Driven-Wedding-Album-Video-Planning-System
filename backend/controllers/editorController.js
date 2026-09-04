@@ -1,0 +1,7 @@
+import Wedding from '../models/Wedding.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { AppError } from '../utils/appError.js';
+const statusMap = { assigned: 'approved', 'in production': 'in_production', editing: 'in_production', review: 'under_review', completed: 'completed' };
+export const dashboard = asyncHandler(async (req, res) => { const weddings = await Wedding.find({ assignedEditor: req.user._id }).populate('clientId', 'name').sort('-updatedAt'); res.json({ stats: { assigned: weddings.length, inProduction: weddings.filter((w) => w.status === 'in_production').length, completed: weddings.filter((w) => w.status === 'completed').length }, weddings }); });
+export const weddings = asyncHandler(async (req, res) => res.json({ weddings: await Wedding.find({ assignedEditor: req.user._id }).populate('clientId', 'name email').sort('-updatedAt') }));
+export const updateStatus = asyncHandler(async (req, res) => { const wedding = await Wedding.findOne({ _id: req.params.id, assignedEditor: req.user._id }); if (!wedding) throw new AppError('Assigned wedding not found.', 404); const normalized = statusMap[String(req.body.status || '').toLowerCase()] || req.body.status; if (!['approved', 'in_production', 'under_review', 'completed'].includes(normalized)) throw new AppError('Invalid production status.'); wedding.status = normalized; await wedding.save(); res.json({ wedding }); });

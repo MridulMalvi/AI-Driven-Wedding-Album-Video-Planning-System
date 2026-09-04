@@ -1,0 +1,1 @@
+import { Router } from 'express'; import { protect } from '../middleware/auth.js'; import { updateFunction, deleteFunction } from '../controllers/weddingController.js'; const router = Router(); router.use(protect); router.route('/:id').put(updateFunction).delete(deleteFunction); export default router;
