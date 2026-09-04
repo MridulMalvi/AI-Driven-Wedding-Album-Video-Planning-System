@@ -99,9 +99,7 @@ export function LoginPage() {
         <p className="rounded-xl bg-blush p-3 text-center text-xs text-wine">
           <b>Client Demo:</b> client@weddingai.com · WeddingAI123!
         </p>
-        <p className="rounded-xl bg-stone-100 p-3 text-center text-xs text-stone-600">
-          <b>Admin Demo:</b> admin@weddingai.com · WeddingAI123!
-        </p>
+
       </div>
     </AuthShell>
   );
