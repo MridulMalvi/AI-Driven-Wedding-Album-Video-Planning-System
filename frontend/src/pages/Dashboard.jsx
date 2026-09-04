@@ -71,15 +71,13 @@ export function ClientDashboard() {
             Your creative brief, translated into a production-ready vision.
           </p>
         </div>
-        <Link className="btn-primary" to="/client/weddings/new">
-          <Plus size={17} /> Create wedding
-        </Link>
+
       </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        <StatCard icon={CalendarDays} label="Total weddings"   value={weddings.length} />
-        <StatCard icon={Sparkles}    label="AI plans ready"   value={generated} />
-        <StatCard icon={Clock3}      label="Active planning"  value={weddings.filter((w) => w.status !== 'completed').length} />
+        <StatCard icon={CalendarDays} label="Total weddings" value={weddings.length} />
+        <StatCard icon={Sparkles} label="AI plans ready" value={generated} />
+        <StatCard icon={Clock3} label="Active planning" value={weddings.filter((w) => w.status !== 'completed').length} />
       </div>
 
       <section className="mt-10">
