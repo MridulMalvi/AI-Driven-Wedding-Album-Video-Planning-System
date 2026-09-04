@@ -15,8 +15,8 @@ const respond = (res, user, status = 200) =>
 export const register = asyncHandler(async (req, res) => {
   const { name, email, password, role = 'client' } = req.body;
   // req.body is already sanitised by validateBody middleware
-  if (!['client', 'editor'].includes(role)) {
-    throw new AppError('Public registration supports client or editor accounts only.');
+  if (role !== 'client') {
+    throw new AppError('Public registration supports client accounts only.');
   }
   // Normalise email before DB query to prevent NoSQL injection via object operators
   const normEmail = String(email).trim().toLowerCase();

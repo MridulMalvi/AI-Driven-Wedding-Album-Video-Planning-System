@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { CalendarDays, CheckCircle2, Clock3, Film, Plus, Sparkles } from 'lucide-react';
+import { CalendarDays, Clock3, Plus, Sparkles } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Empty, Loading, StatCard, Status } from '../components/UI';
@@ -9,9 +9,9 @@ const prettyDate = (date) =>
   new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 
 // ---------------------------------------------------------------------------
-// Shared wedding list card
+// Wedding list card
 // ---------------------------------------------------------------------------
-function WeddingList({ weddings, editor = false }) {
+function WeddingList({ weddings }) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -23,7 +23,7 @@ function WeddingList({ weddings, editor = false }) {
         <button
           key={w._id}
           type="button"
-          onClick={() => navigate(`/${user.role}/weddings/${w._id}`)}
+          onClick={() => navigate(`/${user?.role || 'client'}/weddings/${w._id}`)}
           className="card flex flex-col justify-between gap-4 p-5 text-left transition hover:-translate-y-0.5 hover:shadow-lg sm:flex-row sm:items-center"
         >
           <div className="min-w-0">
@@ -33,9 +33,6 @@ function WeddingList({ weddings, editor = false }) {
             <p className="mt-1 text-sm text-stone-500">
               {w.venue}, {w.city} &middot; {prettyDate(w.weddingDate)}
             </p>
-            {editor && (
-              <p className="mt-2 text-xs text-stone-400">Client: {w.clientId?.name}</p>
-            )}
           </div>
           <div className="shrink-0">
             <Status value={w.status} />
@@ -91,42 +88,6 @@ export function ClientDashboard() {
           <span className="text-sm text-stone-400">Recently updated</span>
         </div>
         <WeddingList weddings={weddings} />
-      </section>
-    </>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Editor dashboard
-// ---------------------------------------------------------------------------
-export function EditorDashboard() {
-  const [data, setData] = useState(null);
-
-  useEffect(() => {
-    api.get('/editor/dashboard')
-      .then(({ data }) => setData(data))
-      .catch(() => setData({ stats: {}, weddings: [] }));
-  }, []);
-
-  if (!data) return <Loading />;
-
-  return (
-    <>
-      <p className="eyebrow">Production desk</p>
-      <h1 className="mt-2 font-display text-4xl">Assigned stories.</h1>
-      <p className="mt-2 text-stone-500">
-        Your active project queue, ready for cinematography planning.
-      </p>
-
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        <StatCard icon={Film}         label="Assigned projects" value={data.stats.assigned    || 0} />
-        <StatCard icon={Clock3}       label="In production"     value={data.stats.inProduction || 0} />
-        <StatCard icon={CheckCircle2} label="Completed"         value={data.stats.completed    || 0} />
-      </div>
-
-      <section className="mt-10">
-        <h2 className="mb-4 font-display text-2xl">Your project queue</h2>
-        <WeddingList weddings={data.weddings} editor />
       </section>
     </>
   );

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   Check, ChevronRight, CircleDot, Clock3, Image,
@@ -11,8 +11,7 @@ import { Empty, Loading, Status } from '../components/UI';
 
 const date = (d) =>
   new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
-const rolePath = (role) =>
-  role === 'client' ? 'client' : role === 'admin' ? 'admin' : 'editor';
+const rolePath = (role) => (role === 'admin' ? 'admin' : 'client');
 
 const AI_DONE_STATUSES = ['ai_generated', 'under_review', 'approved', 'in_production', 'completed'];
 

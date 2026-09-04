@@ -1,31 +1,21 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
-  CalendarHeart, ClipboardList, Film, LayoutDashboard,
+  CalendarHeart, ClipboardList, LayoutDashboard,
   LogOut, Menu, Plus, Settings, Users, WandSparkles, X,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const navs = {
   client: [
-    { to: '/client/dashboard',    label: 'Dashboard',         icon: LayoutDashboard },
-    { to: '/client/weddings/new', label: 'Create Wedding',    icon: Plus },
-    { to: '/client/dashboard',    label: 'My Weddings',       icon: CalendarHeart },
-    { to: '/client/dashboard',    label: 'AI Plans',          icon: WandSparkles },
+    { to: '/client/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/client/weddings/new', label: 'Create Wedding', icon: Plus },
+    { to: '/client/dashboard', label: 'My Weddings', icon: CalendarHeart },
   ],
   admin: [
-    { to: '/admin/dashboard',                label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/admin/weddings',                 label: 'Weddings',  icon: CalendarHeart },
-    { to: '/admin/dashboard?people=clients', label: 'Clients',   icon: Users },
-    { to: '/admin/dashboard?people=editors', label: 'Editors',   icon: Film },
-    { to: '/admin/weddings',                 label: 'AI Plans',  icon: ClipboardList },
-    { to: '/admin/dashboard',                label: 'Settings',  icon: Settings },
-  ],
-  editor: [
-    { to: '/editor/dashboard', label: 'Dashboard',         icon: LayoutDashboard },
-    { to: '/editor/dashboard', label: 'Assigned Weddings', icon: CalendarHeart },
-    { to: '/editor/dashboard', label: 'Video Plans',       icon: Film },
-    { to: '/editor/dashboard', label: 'Album Designs',     icon: ClipboardList },
+    { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/admin/weddings', label: 'Weddings', icon: CalendarHeart },
+    { to: '/admin/dashboard?people=clients', label: 'Clients', icon: Users },
   ],
 };
 
@@ -81,14 +71,14 @@ export default function AppLayout() {
       {/* Desktop sidebar */}
       <aside className="hidden w-72 shrink-0 border-r border-stone-100 bg-white px-5 py-7 lg:flex lg:flex-col">
         <button
-          onClick={() => navigate(`/${user.role}/dashboard`)}
+          onClick={() => navigate(`/${user?.role || 'client'}/dashboard`)}
           className="flex items-center gap-3 px-3 text-left"
         >
           <span className="rounded-2xl bg-wine p-2 text-white"><CalendarHeart size={21} /></span>
           <span className="font-display text-2xl">WeddingAI</span>
         </button>
         <p className="mt-3 px-3 text-xs text-stone-400">AI wedding production studio</p>
-        <NavItems items={items} onNavigate={() => {}} />
+        <NavItems items={items} onNavigate={() => { }} />
         <div className="mt-auto"><UserCard user={user} onLogout={handleLogout} /></div>
       </aside>
 
@@ -106,7 +96,7 @@ export default function AppLayout() {
       >
         <div className="flex items-center justify-between">
           <button
-            onClick={() => { navigate(`/${user.role}/dashboard`); closeMobile(); }}
+            onClick={() => { navigate(`/${user?.role || 'client'}/dashboard`); closeMobile(); }}
             className="flex items-center gap-3 text-left"
           >
             <span className="rounded-2xl bg-wine p-2 text-white"><CalendarHeart size={21} /></span>
@@ -138,7 +128,7 @@ export default function AppLayout() {
               <Menu size={22} />
             </button>
             <button
-              onClick={() => navigate(`/${user.role}/dashboard`)}
+              onClick={() => navigate(`/${user?.role || 'client'}/dashboard`)}
               className="font-display text-xl"
             >
               WeddingAI
@@ -159,11 +149,6 @@ export default function AppLayout() {
           {user?.role === 'admin' && (
             <button onClick={() => navigate('/admin/weddings')} className="btn-primary text-xs">
               <CalendarHeart size={16} /> View weddings
-            </button>
-          )}
-          {user?.role === 'editor' && (
-            <button onClick={() => navigate('/editor/dashboard')} className="btn-secondary text-xs">
-              <Film size={16} /> My queue
             </button>
           )}
         </header>

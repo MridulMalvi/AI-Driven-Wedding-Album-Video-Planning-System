@@ -3,15 +3,14 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import AppLayout from './layouts/AppLayout';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
-import { ClientDashboard, EditorDashboard } from './pages/Dashboard';
+import { ClientDashboard } from './pages/Dashboard';
 import WeddingWizard from './pages/WeddingWizard';
 import { GeneratePlanPage, PlanPage, WeddingDetail } from './pages/WeddingPages';
 import { AdminDashboard, AdminWeddings } from './pages/AdminPages';
 import { useAuth } from './context/AuthContext';
 
 // ---------------------------------------------------------------------------
-// Global Error Boundary — catches render errors and shows a recovery screen
-// instead of a blank white page.
+// Global Error Boundary
 // ---------------------------------------------------------------------------
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -24,7 +23,6 @@ class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    // In production you could send this to Sentry / Datadog etc.
     console.error('[ErrorBoundary]', error, info.componentStack);
   }
 
@@ -101,12 +99,6 @@ export default function App() {
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/weddings" element={<AdminWeddings />} />
               {weddingRoutes('/admin')}
-            </Route>
-
-            {/* Editor workspace */}
-            <Route element={<ProtectedRoute roles={['editor']} />}>
-              <Route path="/editor/dashboard" element={<EditorDashboard />} />
-              {weddingRoutes('/editor')}
             </Route>
           </Route>
         </Route>
